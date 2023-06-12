@@ -37,7 +37,6 @@ public class jdbc {
     }
 
     private static void generateStudentData(Connection conn) throws SQLException {
-        String[] slots = {"A1", "A1", "A2", "A2", "A3", "A3", "A4", "A4", "A5", "A5", "A6", "A6"};
         String[] names = {"John Doe", "Jane Smith", "Mike Johnson", "Emily Davis", "Robert Wilson", "Olivia Brown",
                 "David Taylor", "Sophia Miller", "Daniel Anderson", "Ava Garcia", "William Thomas", "Mia Martinez"};
         String[] uniqueIds = {"001", "002", "003", "004", "005", "006", "007", "008", "009", "010", "011", "012"};
@@ -48,18 +47,30 @@ public class jdbc {
 
         try (PreparedStatement stmt = conn.prepareStatement(insertQuery)) {
             for (int i = 0; i < names.length; i++) {
+                String slot = getRandomSlot(conn);
                 stmt.setString(1, names[i]);
                 stmt.setString(2, uniqueIds[i]);
                 stmt.setString(3, exams[i]);
-                stmt.setString(4, slots[i]);
+                stmt.setString(4, slot);
                 stmt.executeUpdate();
             }
             System.out.println("Student data inserted successfully!");
         }
     }
 
+    private static String getRandomSlot(Connection conn) throws SQLException {
+        String selectQuery = "SELECT slot FROM classes ORDER BY RAND() LIMIT 1";
+        try (Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(selectQuery)) {
+            if (rs.next()) {
+                return rs.getString("slot");
+            }
+        }
+        throw new SQLException("Failed to retrieve a random slot from the classes table.");
+    }
+
     private static void displaySeatingArrangement(Connection conn) throws SQLException {
-        String selectQuery = "SELECT name, unique_id, exam, slot_number FROM students ORDER BY slot_number, name";
+        String selectQuery = "SELECT s.name, s.unique_id, s.exam, s.slot_number FROM students s ORDER BY s.slot_number, s.name";
         try (Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(selectQuery)) {
             System.out.println("Seating Arrangement:");

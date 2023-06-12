@@ -37,7 +37,7 @@ public class AddClassGUI {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.getContentPane().setLayout(null);
 
-        JLabel classLabel = new JLabel("Class:");
+        JLabel classLabel = new JLabel("Number:");
         classLabel.setBounds(50, 50, 80, 25);
         frame.getContentPane().add(classLabel);
 
@@ -55,12 +55,7 @@ public class AddClassGUI {
         frame.getContentPane().add(slotsComboBox);
 
         // Add the slots to the combo box
-        String[] slots = {
-            "A1", "A2", "A3", "A4", "B1", "B2", "B3", "B4",
-            "C1", "C2", "C3", "C4", "D1", "D2", "D3", "D4",
-            "E1", "E2", "E3", "E4", "F1", "F2", "F3", "F4",
-            "G1", "G2", "G3", "G4"
-        };
+        String[] slots = {"A1", "A2", "B1", "B2", "C1", "C2"};
         slotsComboBox.setModel(new DefaultComboBoxModel<>(slots));
 
         addButton = new JButton("Add");
@@ -78,7 +73,7 @@ public class AddClassGUI {
                 String slot = (String) slotsComboBox.getSelectedItem();
 
                 if (className.isEmpty() || slot.isEmpty()) {
-                    statusLabel.setText("Please enter class and select a slot.");
+                    statusLabel.setText("Please enter a number and select a slot.");
                 } else {
                     addClass(className, slot);
                 }
@@ -88,14 +83,15 @@ public class AddClassGUI {
 
     private void addClass(String className, String slot) {
         try (Connection conn = DriverManager.getConnection(JDBC_URL, USERNAME, PASSWORD)) {
-            String insertQuery = "INSERT INTO classes (class, slot) VALUES (?, ?)";
-            try (PreparedStatement stmt = conn.prepareStatement(insertQuery)) {
+            String insertQuery = "INSERT INTO classes (class, slot) VALUES (?, ?) ON DUPLICATE KEY UPDATE class = ?";
+            try (PreparedStatement stmt = conn.prepareStatement(insertQuery, Statement.RETURN_GENERATED_KEYS)) {
                 stmt.setString(1, className);
                 stmt.setString(2, slot);
+                stmt.setString(3, className);
                 int rowsAffected = stmt.executeUpdate();
 
                 if (rowsAffected > 0) {
-                    statusLabel.setText("Class added successfully.");
+                    statusLabel.setText("Class added successfully. Slot: " + slot + ", Number: " + className);
                     classField.setText("");
                     slotsComboBox.setSelectedIndex(0);
                 } else {
