@@ -87,7 +87,7 @@ public class ExamSeatingArrangementGUI {
 
     private void displaySeatInfo(String name, String id) {
         try (Connection conn = DriverManager.getConnection(JDBC_URL, USERNAME, PASSWORD)) {
-            String query = "SELECT s.slot_number, c.class " +
+            String query = "SELECT s.slot_number, c.class, s.seats " +
                     "FROM students s " +
                     "JOIN classes c ON s.slot_number = c.slot " +
                     "WHERE s.name = ? AND s.unique_id = ?";
@@ -99,11 +99,13 @@ public class ExamSeatingArrangementGUI {
                     if (rs.next()) {
                         String slot = rs.getString("slot_number");
                         String studentClass = rs.getString("class");
+                        int seats = rs.getInt("seats");
 
                         String seatingInfo = "Name: " + name + "\n" +
                                 "Unique ID: " + id + "\n" +
                                 "Slot: " + slot + "\n" +
-                                "Class: " + studentClass;
+                                "Class: " + studentClass + "\n" +
+                                "Seats: " + seats;
 
                         seatingTextArea.setText(seatingInfo);
                         errorLabel.setText("");
