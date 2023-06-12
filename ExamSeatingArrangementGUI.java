@@ -12,7 +12,7 @@ public class ExamSeatingArrangementGUI {
     private JFrame frame;
     private JTextField nameField;
     private JTextField idField;
-    private JButton findSeatButton;
+    private JButton displayButton;
     private JTextArea seatingTextArea;
     private JLabel errorLabel;
 
@@ -33,7 +33,7 @@ public class ExamSeatingArrangementGUI {
 
     private void initialize() {
         frame = new JFrame();
-        frame.setTitle("Exam Seating Arrangement");
+        frame.setTitle("Exam Seating Display");
         frame.setBounds(100, 100, 450, 400);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.getContentPane().setLayout(null);
@@ -56,9 +56,9 @@ public class ExamSeatingArrangementGUI {
         frame.getContentPane().add(idField);
         idField.setColumns(10);
 
-        findSeatButton = new JButton("Find My Seat");
-        findSeatButton.setBounds(140, 130, 120, 25);
-        frame.getContentPane().add(findSeatButton);
+        displayButton = new JButton("Display");
+        displayButton.setBounds(140, 130, 120, 25);
+        frame.getContentPane().add(displayButton);
 
         seatingTextArea = new JTextArea();
         seatingTextArea.setEditable(false);
@@ -70,7 +70,7 @@ public class ExamSeatingArrangementGUI {
         errorLabel.setForeground(Color.RED);
         frame.getContentPane().add(errorLabel);
 
-        findSeatButton.addActionListener(new ActionListener() {
+        displayButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 String name = nameField.getText();
                 String id = idField.getText();
@@ -79,38 +79,42 @@ public class ExamSeatingArrangementGUI {
                     errorLabel.setText("Please enter name and ID.");
                     seatingTextArea.setText("");
                 } else {
-                    findSeat(name, id);
+                    displaySeatInfo(name, id);
                 }
             }
         });
     }
 
-    private void findSeat(String name, String id) {
+    private void displaySeatInfo(String name, String id) {
         try (Connection conn = DriverManager.getConnection(JDBC_URL, USERNAME, PASSWORD)) {
-            String selectQuery = "SELECT seats FROM students WHERE name = ? AND unique_id = ?";
-            try (PreparedStatement stmt = conn.prepareStatement(selectQuery)) {
+            String query = "SELECT s.slot_number, c.class " +
+                    "FROM students s " +
+                    "JOIN classes c ON s.slot_number = c.slot " +
+                    "WHERE s.name = ? AND s.unique_id = ?";
+            try (PreparedStatement stmt = conn.prepareStatement(query)) {
                 stmt.setString(1, name);
                 stmt.setString(2, id);
-    
-                ResultSet rs = stmt.executeQuery();
-                if (rs.next()) {
-                    int seats = rs.getInt("seats");
-    
-                    seatingTextArea.setText("Name: " + name + "\n" +
-                            "Unique ID: " + id + "\n" +
-                            "Seat Number: " + seats);
-                    errorLabel.setText("");
-                } else {
-                    seatingTextArea.setText("");
-                    errorLabel.setText("Invalid name or ID. Please try again.");
+
+                try (ResultSet rs = stmt.executeQuery()) {
+                    if (rs.next()) {
+                        String slot = rs.getString("slot_number");
+                        String studentClass = rs.getString("class");
+
+                        String seatingInfo = "Name: " + name + "\n" +
+                                "Unique ID: " + id + "\n" +
+                                "Slot: " + slot + "\n" +
+                                "Class: " + studentClass;
+
+                        seatingTextArea.setText(seatingInfo);
+                        errorLabel.setText("");
+                    } else {
+                        seatingTextArea.setText("");
+                        errorLabel.setText("No seat found for the given name and ID.");
+                    }
                 }
             }
         } catch (SQLException ex) {
             ex.printStackTrace();
-            errorLabel.setText("Error connecting to the database.");
-            seatingTextArea.setText("");
         }
     }
-    
-    
 }
