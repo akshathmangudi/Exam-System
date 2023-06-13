@@ -1,4 +1,4 @@
-import java.sql.*;
+/*import java.sql.*;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
@@ -97,4 +97,4 @@ public class ExamSeatingArrangementGUI extends Application {
             seatingTextArea.setText("");
         }
     }
-}
+}*/
