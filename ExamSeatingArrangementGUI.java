@@ -1,4 +1,4 @@
-/*import java.sql.*;
+import java.sql.*;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -113,4 +113,4 @@ public class ExamSeatingArrangementGUI {
     }
     
     
-}*/
+}
